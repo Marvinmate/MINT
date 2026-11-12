@@ -2,7 +2,7 @@
 
 **Motor Interhemispheric Neurophysiology Toolbox**
 
-MINT is a Nextflow DSL2 pipeline for analysing electromyography (EMG) recorded during transcranial magnetic stimulation (TMS). It reads LabChart MATLAB exports and produces trial-level measurements, figures, and an interactive quality-control report. Scientific calculations run in GNU Octave.
+MINT is a Nextflow/Octave pipeline for analysing electromyography (EMG) recorded during transcranial magnetic stimulation (TMS). It reads LabChart MATLAB exports and produces trial-level measurements, figures, and an interactive quality-control report. Scientific calculations run in GNU Octave.
 
 ## Features
 
