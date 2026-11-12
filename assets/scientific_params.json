@@ -1,0 +1,36 @@
+{
+  "rate": 4000,
+  "samples_per_trial": 1600,
+  "mep_half_window_seconds": 0.01,
+  "expect_mep_start": 450,
+  "expect_mep_end": 650,
+  "csp_offset_samples": 120,
+  "baseline_offset_samples": 80,
+  "baseline_duration_samples": 200,
+  "sliding_samples": 20,
+  "threshold_fraction": 0.25,
+  "silence_samples": 60,
+  "breakthrough_max_samples": 160,
+  "remove_60hz": true,
+  "formats": [
+    "png",
+    "svg",
+    "pdf"
+  ],
+  "plot_dpi": 96,
+  "csp_figure_versions": {
+    "p26": "v1"
+  },
+  "figure_context_conditions": {
+    "p26": "Full"
+  },
+  "default_figure_version": "v2",
+  "default_figure_context_condition": "Pbo",
+  "csp_figure_orders": {
+    "p26": [
+      "Pbo",
+      "Half",
+      "Full"
+    ]
+  }
+}

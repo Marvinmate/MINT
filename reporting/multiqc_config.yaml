@@ -1,0 +1,14 @@
+title: MINT — MEP, CSP and IHI
+report_comment: "Summaries of validated exported TSV values. CSP and IHI MEP methods are kept separate. Detailed EMG plots remain in the module plot directories or slim folder."
+run_modules: [custom_content]
+custom_content:
+  order: [tms_overview, tms_mep, tms_csp, tms_ihi, tms_methods]
+fn_clean_sample_names: false
+plots_force_interactive: true
+boxplot_boxpoints: all
+# MultiQC 1.35 redraws the hidden QC violin on sample filtering.
+# Disable its outlier overlay, which can throw after samples are hidden.
+violin_min_threshold_no_points: 0
+data_format: json
+log_filesize_limit: 100000000
+disable_version_detection: true

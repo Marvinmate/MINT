@@ -1,0 +1,32 @@
+{
+  "dpi": 300,
+  "font": "Helvetica",
+  "font_size": 11,
+  "line_width": 1.4,
+  "ihi_trials_per_page": 6,
+  "mep_inches": [
+    11,
+    8
+  ],
+  "ihi_overview_inches": [
+    12,
+    10
+  ],
+  "ihi_detail_inches": [
+    12,
+    10
+  ],
+  "ihi_summary_inches": [
+    11,
+    5.5
+  ],
+  "csp_inches": [
+    12,
+    9
+  ],
+  "formats": [
+    "png",
+    "svg",
+    "pdf"
+  ]
+}
