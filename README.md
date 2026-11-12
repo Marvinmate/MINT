@@ -39,6 +39,28 @@ MEP is always enabled. Use `--CSP false` or `--IHI false` to omit either optiona
 
 Results are written to `results/mep/`, `results/csp/`, and `results/ihi/` for the selected analyses. The interactive report is `results/multiqc/multiqc_report.html`. Slim mode publishes representative PNG/CSV pairs under `results/slim/` and retains the complete measurement tables.
 
+## Example outputs
+
+MINT generated these figures from synthetic EMG and stimulation signals for the example participant XX.
+
+### Motor Evoked Potentials (MEP)
+
+![Synthetic MEP example with trial amplitudes and an EMG measurement window](assets/example_mep.png)
+
+Peak-to-peak amplitudes by trial (top) and the first EMG trace with its measurement window (bottom).
+
+### Cortical Silent Period (CSP)
+
+![Synthetic CSP example with EMG traces and duration markers](assets/example_csp.png)
+
+EMG traces for three conditions, with detected CSP boundaries and durations in milliseconds.
+
+### Interhemispheric Inhibition (IHI)
+
+![Synthetic IHI example with right and left EMG and pulse markers](assets/example_ihi.png)
+
+Right and left EMG traces with pulse markers and MEP measurement windows for unconditioned, IHI10 and IHI40 trials.
+
 ## Documentation
 
 Detailed documentation is planned for Read the Docs.
