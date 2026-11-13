@@ -1,5 +1,5 @@
 process IHI_ANALYSIS {
-    tag "${meta.key}"
+    tag { meta.key.toString() }
     publishDir "${params.outdir}/ihi/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     input:
     tuple val(meta), path(features)
@@ -13,7 +13,7 @@ process IHI_ANALYSIS {
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process IHI_PLOT {
-    tag "${meta.key}"
+    tag { meta.key.toString() }
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/IHI" : "${params.outdir}/ihi/plots" }, mode:'copy', overwrite:true
     input:
@@ -34,7 +34,7 @@ process IHI_PLOT {
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process IHI_EXPORT {
-    tag id
+    tag { id.toString() }
     publishDir "${params.outdir}/ihi/data", mode:'copy', overwrite:true
     input:
     tuple val(id), path(records)

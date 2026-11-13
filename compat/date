@@ -1,0 +1,15 @@
+#!/bin/sh
+# Nextflow's trace wrapper expects epoch milliseconds from this format.
+if [ "$#" -eq 1 ] && [ "$1" = '+%s%3N' ]; then
+    stamp=$(/usr/bin/date '+%s%N') || exit "$?"
+    case "$stamp" in
+        ''|*[!0-9]*)
+            printf '%s\n' 'date: expected epoch seconds followed by nanoseconds' >&2
+            exit 1
+            ;;
+    esac
+    # Remove the six sub-millisecond digits without relying on %3N support.
+    printf '%s\n' "${stamp%??????}"
+else
+    exec /usr/bin/date "$@"
+fi

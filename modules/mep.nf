@@ -1,5 +1,5 @@
 process MEP_ANALYSIS {
-    tag "${meta.key}"
+    tag { meta.key.toString() }
     publishDir "${params.outdir}/mep/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     publishDir "${params.outdir}/provenance", mode:'copy', overwrite:true, pattern:'*.provenance.json'
     input:
@@ -16,7 +16,7 @@ process MEP_ANALYSIS {
 }
 
 process MEP_PLOT {
-    tag "${meta.key}"
+    tag { meta.key.toString() }
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/MEP" : "${params.outdir}/mep/plots" }, mode:'copy', overwrite:true
     input:

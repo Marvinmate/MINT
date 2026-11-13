@@ -13,7 +13,7 @@ MINT is a Nextflow/Octave pipeline for analysing electromyography (EMG) recorded
 
 ## Requirements
 
-Install Java 17 or newer, Nextflow 25.04 or newer, and Docker or Apptainer. Both container profiles use the published Linux AMD64 image `docker.io/marvinp45/tms-pipeline:1.0`, pinned by digest in [nextflow.config](nextflow.config). Octave and MultiQC are included. On Apple Silicon, start Docker Desktop before running MINT. On a Slurm cluster, use the `apptainer,slurm` profile with a shared work directory and set `NXF_APPTAINER_CACHEDIR` to a shared cache path.
+Install Java 17 or newer. Use Nextflow 26.04.6 or newer with Docker, or Nextflow 25.10.2 or newer with Apptainer on Slurm. Both container profiles use the published Linux AMD64 image `docker.io/marvinp45/tms-pipeline:1.0`, pinned by digest in [nextflow.config](nextflow.config). Octave and MultiQC are included. On Apple Silicon, start Docker Desktop before running MINT. On a Slurm cluster, use the `apptainer,slurm` profile with a shared work directory and set `NXF_APPTAINER_CACHEDIR` to a shared cache path.
 
 ## Quick start
 

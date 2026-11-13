@@ -1,5 +1,5 @@
 process CSP_ANALYSIS {
-    tag "${meta.key}"
+    tag { meta.key.toString() }
     publishDir "${params.outdir}/csp/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     input:
     tuple val(meta), path(features)
@@ -13,7 +13,7 @@ process CSP_ANALYSIS {
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process CSP_PLOT {
-    tag id
+    tag { id.toString() }
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/CSP" : "${params.outdir}/csp/plots" }, mode:'copy', overwrite:true
     input:

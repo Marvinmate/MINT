@@ -135,21 +135,23 @@ workflow {
         CSP_ANALYSIS(MEP_ANALYSIS.out.features.filter { m,f -> m.protocol == 'CSP' }, science, library)
         def cspPlots = CSP_ANALYSIS.out.results.map { m,f -> tuple(m.id,f) }.groupTuple()
             .map { id,fs -> tuple(id,fs.sort { a,b -> a.name <=> b.name }) }
+        // A failed upstream task can close a result channel without any records.
+        // Skip empty aggregates so Nextflow reports the original task failure.
         if (slim) {
-            cspPlots = CSP_ANALYSIS.out.results.toList().map { records ->
+            cspPlots = CSP_ANALYSIS.out.results.toList().filter { !it.isEmpty() }.map { records ->
                 def first = records.sort { a,b -> (a[0].id <=> b[0].id) ?: (a[0].time <=> b[0].time) ?: (a[0].key <=> b[0].key) }.first()[0]
                 tuple(first.id, records.findAll { m,f -> m.id == first.id && m.time == first.time }.collect { it[1] })
             }
         }
         CSP_PLOT(cspPlots, science, library, rendering, slim, renderLibrary)
-        CSP_EXPORT(CSP_ANALYSIS.out.results.map { m,f -> f }.toList().map { fs -> fs.sort { it.name } }, science, library)
+        CSP_EXPORT(CSP_ANALYSIS.out.results.map { m,f -> f }.toList().filter { !it.isEmpty() }.map { fs -> fs.sort { it.name } }, science, library)
         tables = tables.mix(CSP_ANALYSIS.out.measurements.mix(CSP_EXPORT.out.table).map { f -> tuple('csp',f) })
     }
 
     if (runIhi) {
         IHI_ANALYSIS(MEP_ANALYSIS.out.features.filter { m,f -> m.protocol == 'IHI' }, science, library)
         def ihiPlots = IHI_ANALYSIS.out.results
-        if (slim) ihiPlots = ihiPlots.toList().map { records -> records.sort { it[0].key }.first() }
+        if (slim) ihiPlots = ihiPlots.toList().filter { !it.isEmpty() }.map { records -> records.sort { it[0].key }.first() }
         IHI_PLOT(ihiPlots, science, library, rendering, slim, renderLibrary)
         def perParticipant = IHI_ANALYSIS.out.results.map { m,f -> tuple(m.id,f) }.groupTuple()
             .map { id,fs -> tuple(id,fs.sort { it.name }) }
@@ -159,7 +161,7 @@ workflow {
 
     EXPORT_CSV(tables.groupTuple().map { module,files -> tuple(module,files.sort { it.name }) })
     if (reporting) {
-        MULTIQC_REPORT(tables.map { module,f -> f }.toList().map { it.sort { f -> f.name } },
+        MULTIQC_REPORT(tables.map { module,f -> f }.toList().filter { !it.isEmpty() }.map { it.sort { f -> f.name } },
                        selected.sort().join(','), file(missingFile), science,
                        [mint:workflow.manifest.version, nextflow:nextflow.version.toString(), profile:workflow.profile],
                        file("${projectDir}/reporting/tms_multiqc_content.m"),

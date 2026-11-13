@@ -1,5 +1,5 @@
 process EXPORT_CSV {
-    tag module
+    tag { module.toString() }
     publishDir { "${params.outdir}/${module}/data" }, mode:'copy', overwrite:true
 
     input:
