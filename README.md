@@ -1,5 +1,9 @@
 # MINT
 
+[![Documentation Status](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=latest)](https://mint-toolbox.readthedocs.io/en/latest/)
+
+[**Read the documentation**](https://mint-toolbox.readthedocs.io/en/latest/)
+
 **Motor Interhemispheric Neurophysiology Toolbox**
 
 MINT is a Nextflow/Octave pipeline for analysing electromyography (EMG) recorded during transcranial magnetic stimulation (TMS). It reads LabChart MATLAB exports and produces trial-level measurements, figures, and an interactive quality-control report. Scientific calculations run in GNU Octave.
