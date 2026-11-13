@@ -1,0 +1,48 @@
+site_name: MINT Documentation
+site_description: User and scientific documentation for the Motor Interhemispheric Neurophysiology Toolbox
+repo_url: https://github.com/Marvinmate/MINT
+repo_name: Marvinmate/MINT
+
+theme:
+  name: material
+  language: en
+  font: false
+  features:
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+exclude_docs: |
+  requirements.txt
+validation:
+  links:
+    anchors: warn
+
+nav:
+  - Overview: index.md
+  - Installation: installation.md
+  - Input data: input-data.md
+  - Running MINT: running-mint.md
+  - Analysis modules: analysis-modules.md
+  - Outputs: outputs.md
+  - Troubleshooting: troubleshooting.md

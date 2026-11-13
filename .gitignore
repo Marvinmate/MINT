@@ -16,3 +16,5 @@ __pycache__/
 !/input/.gitkeep
 *.[mM][aA][tT]
 *.[aA][dD][iI][cC][hH][tT]
+
+/site/
