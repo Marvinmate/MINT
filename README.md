@@ -1,6 +1,6 @@
 # MINT
 
-[![Read the Docs: main](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=latest)](https://mint-toolbox.readthedocs.io/en/latest/)
+[![Read the Docs: main](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=latest)](https://mint-toolbox.readthedocs.io/)
 
 The **Motor Interhemispheric Neurophysiology Toolbox** is a Nextflow and
 GNU Octave pipeline for LabChart EMG recordings. MINT v0.2.0 measures motor
