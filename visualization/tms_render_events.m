@@ -13,16 +13,15 @@ function events=tms_render_events(ax,d,tr,r,channels)
       centre=centre-d.starts(tr)+1;
     else
       % Historical amplitude window is +/- 10 ms around the saved centre.
-      start=max(1,centre-round(.010*d.rate));
+      if isfield(d,'measurement_starts'), start=d.measurement_starts(tr,ch);
+      else, start=max(1,centre-round(.010*d.rate)); end
     end
     events.starts(ch)=start;
     if isfinite(start) && isfinite(stop)
       a=(start-1)*1000/d.rate; b=(stop-1)*1000/d.rate;
       % Separate colour bands at the bottom: no opaque patch covers EMG.
-      y=yl(1)+(.025+.045*(ch-1))*diff(yl);
-      h=plot(ax,[a b],[y y],'-','Color',colors(ch,:),'LineWidth',4,'DisplayName',[names{ch} ' MEP window']);
-      setappdata(h,'mint_trials',tr);
-      h=plot(ax,([centre stop]-1)*1000/d.rate,[y y],'o','Color',colors(ch,:),'MarkerSize',3,'MarkerFaceColor','w','DisplayName',[names{ch} ' centre / end']);
+      y=yl(1)+(.04+.05*(ch-1))*diff(yl);
+      h=plot(ax,[a b],[y y],'-','Color',colors(ch,:),'LineWidth',.7,'DisplayName',[names{ch} ' MEP window']);
       setappdata(h,'mint_trials',tr);
     end
     if isfinite(d.stim(tr,ch))

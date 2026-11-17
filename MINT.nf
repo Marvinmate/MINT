@@ -26,50 +26,37 @@ def trackedLibrary(directory) {
 def helpText() {
     return '''
 MINT — Motor Interhemispheric Neurophysiology Toolbox
-Analyse des exports LabChart pour mesurer les amplitudes MEP, le CSP et l’IHI.
+Analyze LabChart exports for MEP amplitudes, CSP duration, and IHI classes.
 
     nextflow run MINT.nf [options]
-    nextflow run /chemin/MINT/MINT.nf -profile apptainer,slurm --input /chemin/donnees
+    nextflow run /path/to/MINT/MINT.nf -profile apptainer,slurm --input /path/to/data
 
-    --MEP true       Amplitudes MEP (obligatoire, false provoque un refus).
-    --CSP true       Durée et normalisation CSP.
-    --IHI true       Mesures et classifications IHI.
-    --slim false     true : une image PNG et son CSV par catégorie disponible.
-    --input          Dossier d’entrée. Par défaut : input/ à côté de MINT.nf.
-    --outdir         Destination. Par défaut : results/ à côté de MINT.nf.
-    --multiqc true   Génération du rapport HTML.
-    --strict_timepoints true   false : accepter les séries incomplètes.
-    --container      Remplacer explicitement l’image Docker ou Apptainer.
-    --help           Afficher cette aide.
-    -profile         docker (défaut), local (Octave natif), apptainer,slurm.
-    -work-dir        Chemin de travail Nextflow. Utiliser un partage sous Slurm.
-    -resume          Réutiliser le cache d’une exécution précédente.
+    --MEP true                 Required MEP analysis.
+    --CSP true                 CSP measurements and T0 normalization.
+    --IHI true                 IHI measurements and classifications.
+    --slim false               Write representative figures and their plotting CSVs.
+    --scientific_params        Study settings JSON (default: assets/scientific_params.json).
+    --input                    Input directory (default: input/ in the checkout).
+    --outdir                   Output directory (default: results/ in the checkout).
+    --multiqc true             Generate the HTML quality-control report.
+    --strict_timepoints true   Set false to accept incomplete T0–T5 series.
+    --container                Override the pinned Docker image or use an approved SIF.
+    --help                     Show this help.
+    -profile                   Docker (default), local (native Octave), apptainer,slurm.
+    -work-dir                  Task work directory. Use shared storage on Slurm.
+    -resume                    Reuse cached tasks from a previous run.
 
-input/
-├── CSP/
-│   └── sub-14/
-│       ├── Full/  CSP_T0.mat … CSP_T5.mat
-│       ├── Half/  CSP_T0.mat … CSP_T5.mat
-│       └── Pbo/   CSP_T0.mat … CSP_T5.mat
-└── IHI/
-    └── sub-14/
-        ├── Full/  IHI_T0.mat … IHI_T5.mat
-        ├── Half/  IHI_T0.mat … IHI_T5.mat
-        └── Pbo/   IHI_T0.mat … IHI_T5.mat
+Input layout:
+    CSP/sub-01/Study condition/CSP_T0.mat … CSP_T5.mat
+    IHI/sub-01/Study condition/IHI_T0.mat … IHI_T5.mat
 
-Les IDs historiques sans sub- sont acceptés. Export MAT LabChart à 4 000 Hz,
-1 600 échantillons par essai, en volts. Champs requis : data, datastart,
-dataend, samplerate, unittext et titles. CSP : un canal EMG. IHI : EMG droit,
-EMG gauche, impulsion test et impulsion conditionnante, dans cet ordre.
+LabChart MAT files must contain data, datastart, dataend, samplerate, unittext,
+and titles. Signals are in volts. Sampling rate is read from the file (at
+least 1,000 Hz). CSP takes one EMG channel. IHI takes right EMG, left EMG, the
+test pulse, and the conditioning pulse, in that order.
 
-    nextflow run MINT.nf --IHI false                # MEP + CSP
-    nextflow run MINT.nf --CSP false                # MEP + IHI
-    nextflow run MINT.nf --CSP false --IHI false    # MEP seule
-    nextflow run MINT.nf --slim true                 # Sorties graphiques légères
-
-Les modules publient leurs tableaux dans results/{mep,csp,ihi}/data.
-Les graphiques légers se trouvent dans results/slim. Le rapport HTML se
-trouve dans results/multiqc.
+Scientific tables go to results/{mep,csp,ihi}/data. Figures are PNG at 300 dpi.
+Slim figures are under results/slim. MultiQC is under results/multiqc.
 '''.stripIndent()
 }
 
@@ -79,7 +66,7 @@ workflow {
         return
     }
 
-    def accepted = ['input','outdir','MEP','CSP','IHI','slim','multiqc','strict_timepoints','help','octave','multiqc_bin','container','queue','account']
+    def accepted = ['scientific_params','input','outdir','MEP','CSP','IHI','slim','multiqc','strict_timepoints','help','octave','multiqc_bin','container','queue','account']
     def unknown = params.keySet() - accepted
     if (unknown) error "Options inconnues : ${unknown.collect { '--' + it }.sort().join(', ')}. Voir --help."
     if (!booleanParam('MEP', params.MEP)) error 'MEP est obligatoire. --MEP false est incompatible avec MINT.'
@@ -112,7 +99,7 @@ workflow {
     new File(out,'input_manifest.tsv').text = (['recording_id\tprotocol\tparticipant\tcondition\ttimepoint\tmat_path'] + manifest).join('\n') + '\n'
     def missingFile = new File(out,'missing_recordings.tsv')
     missingFile.text = (['recording'] + missing).join('\n') + '\n'
-    def science = file("${projectDir}/assets/scientific_params.json", checkIfExists:true)
+    def science = file(params.scientific_params, checkIfExists:true)
     def rendering = file("${projectDir}/assets/rendering.json", checkIfExists:true)
     def library = trackedLibrary(file("${projectDir}/bin", checkIfExists:true))
     def renderLibrary = trackedLibrary(file("${projectDir}/visualization", checkIfExists:true))
@@ -135,12 +122,11 @@ workflow {
         CSP_ANALYSIS(MEP_ANALYSIS.out.features.filter { m,f -> m.protocol == 'CSP' }, science, library)
         def cspPlots = CSP_ANALYSIS.out.results.map { m,f -> tuple(m.id,f) }.groupTuple()
             .map { id,fs -> tuple(id,fs.sort { a,b -> a.name <=> b.name }) }
-        // A failed upstream task can close a result channel without any records.
-        // Skip empty aggregates so Nextflow reports the original task failure.
+        // Preserve the upstream error when a failed analysis closes a channel without results.
         if (slim) {
             cspPlots = CSP_ANALYSIS.out.results.toList().filter { !it.isEmpty() }.map { records ->
                 def first = records.sort { a,b -> (a[0].id <=> b[0].id) ?: (a[0].time <=> b[0].time) ?: (a[0].key <=> b[0].key) }.first()[0]
-                tuple(first.id, records.findAll { m,f -> m.id == first.id && m.time == first.time }.collect { it[1] })
+                tuple(first.id, records.findAll { m,f -> m.id == first.id }.collect { it[1] })
             }
         }
         CSP_PLOT(cspPlots, science, library, rendering, slim, renderLibrary)
@@ -151,7 +137,12 @@ workflow {
     if (runIhi) {
         IHI_ANALYSIS(MEP_ANALYSIS.out.features.filter { m,f -> m.protocol == 'IHI' }, science, library)
         def ihiPlots = IHI_ANALYSIS.out.results
-        if (slim) ihiPlots = ihiPlots.toList().filter { !it.isEmpty() }.map { records -> records.sort { it[0].key }.first() }
+        if (slim) {
+            ihiPlots = ihiPlots.toList().filter { !it.isEmpty() }.map { records ->
+                def ordered = records.sort { it[0].key }
+                tuple([key:'IHI slim'], ordered.collect { it[1] })
+            }
+        }
         IHI_PLOT(ihiPlots, science, library, rendering, slim, renderLibrary)
         def perParticipant = IHI_ANALYSIS.out.results.map { m,f -> tuple(m.id,f) }.groupTuple()
             .map { id,fs -> tuple(id,fs.sort { it.name }) }

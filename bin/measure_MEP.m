@@ -4,12 +4,10 @@ function [amp, onset_idx, offset_idx, flag] = ...
 % MEASURE_MEP
 %   Detects a motor-evoked potential in a single-channel EMG signal.
 %
-%   Strategy (borrowed from Calculate_MEP.m):
-%     1. Work with the signal differential to ignore slow drifts.
-%     2. Savitzky-Golay filter to remove noise spikes.
-%     3. Find the sample with the largest absolute differential in the
-%        search window → centre of MEP.
-%     4. Amplitude = peak-to-peak over ±Sec seconds around centre.
+%   Historical IHI strategy (distinct from Calculate_MEP):
+%     1. Select the largest absolute raw EMG sample in the search window.
+%     2. Measure peak-to-peak over +/-Sec around that centre.
+%     3. Keep amplitude but return missing centre/end below 50 microvolts.
 %
 %   Inputs:
 %     signal       - full trial EMG (samples × 1)

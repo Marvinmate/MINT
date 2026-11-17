@@ -11,14 +11,14 @@ def discoverRecordings(base) {
         if (parts.size() == 5 && java.text.Normalizer.normalize(parts[1], java.text.Normalizer.Form.NFC) == "Données_${protocol}")
             parts.remove(1)
         if (parts.size() != 4 || !(protocol in ['CSP','IHI']))
-            error "Chemin MAT invalide : ${f}. Attendu : {CSP,IHI}/[sub-]ID/{Full,Half,Pbo}/PROTOCOLE_T[0-5].mat."
+            error "Chemin MAT invalide : ${f}. Attendu : {CSP,IHI}/[sub-]ID/CONDITION/PROTOCOLE_T[0-5].mat."
         def id = parts[1].replaceFirst(/^sub-/, '')
         def condition = parts[2]
         def match = (parts[3] =~ /^(CSP|IHI)_T([0-5])\.mat$/)
-        if (!(id ==~ /[A-Za-z0-9_-]+/) || !(condition in ['Full','Half','Pbo']) || !match.matches() || match.group(1) != protocol)
+        if (!(id ==~ /[A-Za-z0-9_-]+/) || (condition.trim().isEmpty() || condition.find(/[\x00-\x1f|]/)) || !match.matches() || match.group(1) != protocol)
             error "Nom MAT ou métadonnées invalides : ${f}. Voir l’arborescence dans --help."
         int time = match.group(2).toInteger()
-        rows << tuple([key:"${protocol}_${id}_${condition}_T${time}".toString(), id:id, condition:condition, time:time, protocol:protocol], f)
+        rows << tuple([key:"${protocol}_${id}_${condition ==~ /[A-Za-z0-9_-]+/ ? condition : 'label' + java.security.MessageDigest.getInstance('SHA-256').digest(condition.getBytes('UTF-8')).encodeHex().toString().take(16)}_T${time}".toString(), id:id, condition:condition, time:time, protocol:protocol], f)
     }
     if (!rows) error "Aucun fichier MAT trouvé dans ${base}. Déposez les exports LabChart selon --help."
     def duplicates = rows.groupBy { it[0].key }.findAll { key, group -> group.size() > 1 }.keySet()

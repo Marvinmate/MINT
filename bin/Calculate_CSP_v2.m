@@ -1,4 +1,6 @@
-function [Breakthrough,Duration_in_Sec,Idx_Peak,CSP_Offset] = Calculate_CSP_v2(Max_Breakthrough_Duration,Trials,Time_Points,participant_list,EMG_Silence_Duration,part,data,Rate,start_end,window_MEP,Offset_Assess_CSP,Offset_Assess_Baseline,Bsln_Dur,Length_Sliding,Fraction_Of_Threshold)
+function [Breakthrough,Duration_in_Sec,Idx_Peak,CSP_Offset] = Calculate_CSP_v2(Max_Breakthrough_Duration,Trials,Time_Points,participant_list,EMG_Silence_Duration,part,data,Rate,start_end,window_MEP,Offset_Assess_CSP,Offset_Assess_Baseline,Bsln_Dur,Length_Sliding,Fraction_Of_Threshold,SG_Frame)
+
+if nargin<16, SG_Frame=11; end
 
 Breakthrough = false; % By default, we flag trials as NOT containing breakthroughs
 
@@ -6,7 +8,7 @@ Breakthrough = false; % By default, we flag trials as NOT containing breakthroug
 Window_Baseline = window_MEP(1)-Offset_Assess_Baseline-Bsln_Dur:window_MEP(1)-Offset_Assess_Baseline;
 
 diff_data = diff(data); % We'll work with the data differential to avoid possible slow drifts
-diff_data = sgolayfilt(diff_data,3,11); % Smooth out the imperfections
+diff_data = sgolayfilt(diff_data,3,SG_Frame); % Smooth out the imperfections
 
 % Calculate the threshold based on diff_data (not the raw data)
 Threshold = std(diff_data(Window_Baseline))*Fraction_Of_Threshold; % That's our threshold to determine CSP offset
@@ -40,6 +42,9 @@ end
 % Make sure that here, we only report the periods of silent EMG AFTER the
 % CSP Offset
 
+if isempty(CSP_End)
+    Duration_in_Sec=NaN; CSP_Offset=NaN; return;
+end
 Silent_EMG(Silent_EMG <= CSP_End(1)) = [];
 
 % I need to validate whether this is the genuine CSP Offset.

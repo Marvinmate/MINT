@@ -1,5 +1,5 @@
 process MEP_ANALYSIS {
-    tag { meta.key.toString() }
+    tag "${meta.key}"
     publishDir "${params.outdir}/mep/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     publishDir "${params.outdir}/provenance", mode:'copy', overwrite:true, pattern:'*.provenance.json'
     input:
@@ -11,12 +11,22 @@ process MEP_ANALYSIS {
     path "${meta.key}.mep.tsv", emit:measurements
     path "${meta.key}.provenance.json"
     script:
-    def code="addpath('${library}'); tms_mep('${recording}','${meta.id}','${meta.condition}',${meta.time},'${meta.protocol}','${meta.key}','${settings}');"
-    "${params.octave} --no-gui --quiet --eval \"${code}\""
+    def metadata=groovy.json.JsonOutput.toJson(meta)
+    """
+    cat > recording_metadata.json <<'MINT_METADATA'
+    ${metadata}
+    MINT_METADATA
+    cat > run_analysis.m <<'MINT_ANALYSIS'
+    addpath('${library}');
+    m=jsondecode(fileread('recording_metadata.json'));
+    tms_mep('${recording}',m.id,m.condition,m.time,m.protocol,m.key,'${settings}');
+    MINT_ANALYSIS
+    ${params.octave} --no-gui --quiet run_analysis.m
+    """
 }
 
 process MEP_PLOT {
-    tag { meta.key.toString() }
+    tag "${meta.key}"
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/MEP" : "${params.outdir}/mep/plots" }, mode:'copy', overwrite:true
     input:
@@ -28,8 +38,6 @@ process MEP_PLOT {
     tuple val(render_hash), path(render_library)
     output:
     path '*.png', emit:png, optional:true
-    path '*.svg', emit:svg, optional:true
-    path '*.pdf', emit:pdf, optional:true
     path '*.csv', emit:csv, optional:true
     path '*.graphics.json', emit:audit
     script:

@@ -4,7 +4,10 @@ function tms_xlsx(filename,sheet,header,rows)
     if isnumeric(content{i}) && (isempty(content{i}) || isnan(content{i})), content{i}=''; end
   end
   if exist('OCTAVE_VERSION','builtin')
-    pkg('load','io'); ok=xlswrite(filename,content,sheet,'A1','OCT'); assert(ok==1,'XLSX write failed');
+    pkg('load','io');
+    ok=xlswrite(filename,content,sheet,'A1','OCT');
+    assert(ok==1,'XLSX write failed');
+    tms_fix_xlsx_timestamp(filename);
   else
     writecell(content,filename,'Sheet',sheet);
   end

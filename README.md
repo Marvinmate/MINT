@@ -2,73 +2,53 @@
 
 [![Documentation Status](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=latest)](https://mint-toolbox.readthedocs.io/en/latest/)
 
-[**Read the documentation**](https://mint-toolbox.readthedocs.io/en/latest/)
+The **Motor Interhemispheric Neurophysiology Toolbox** is a Nextflow and
+GNU Octave pipeline for LabChart EMG recordings. MINT v0.2.0 measures motor
+evoked potentials (MEPs), estimates cortical silent period (CSP) duration,
+and classifies interhemispheric inhibition (IHI) trials.
 
-**Motor Interhemispheric Neurophysiology Toolbox**
-
-MINT is a Nextflow/Octave pipeline for analysing electromyography (EMG) recorded during transcranial magnetic stimulation (TMS). It reads LabChart MATLAB exports and produces trial-level measurements, figures, and an interactive quality-control report. Scientific calculations run in GNU Octave.
-
-## Features
-
-- **MEP** measures peak-to-peak motor evoked potential amplitudes. It is required for both acquisition protocols.
-- **CSP** measures the cortical silent period and reports breakthroughs and normalisation to T0.
-- **IHI** classifies trials from the detected test and conditioning pulses and reports the corresponding MEP amplitudes.
-- **MultiQC** summarises acquisition coverage, measurement availability, and other quality-control indicators.
-
-## Requirements
-
-Install Java 17 or newer and **Nextflow ≥ 26.04.6**. Use Docker for local runs and Apptainer with Slurm on HPC. Both container profiles use the published Linux AMD64 image `docker.io/marvinp45/tms-pipeline:1.0`, pinned by digest in [nextflow.config](nextflow.config). Octave and MultiQC are included. On Apple Silicon, start Docker Desktop before running MINT. On a Slurm cluster, use the `apptainer,slurm` profile with a shared work directory and set `NXF_APPTAINER_CACHEDIR` to a shared cache path.
+MINT reads the sampling rate from each recording and supports custom
+experimental conditions, configurable IHI MEP windows, optional
+pre-stimulation EMG quality control, and two CSP endpoint methods. Figures
+are PNG at 300 dpi. Slim mode keeps representative figures and the full
+scientific tables, Excel workbooks and MultiQC report.
 
 ## Quick start
 
-Place LabChart MAT files in `input/`. MINT expects 4,000 Hz recordings in volts with 1,600 samples per trial. CSP takes one EMG channel. IHI takes right EMG, left EMG, the test pulse, and the conditioning pulse in that order. Use `Full`, `Half`, or `Pbo` as the condition and include T0 through T5 for every series.
+Install Java 17 or newer, Nextflow 26.04.6 or newer, and Docker. On a
+Slurm cluster, use the [Apptainer instructions](https://mint-toolbox.readthedocs.io/en/latest/running-mint/#run-on-slurm).
+Both profiles use a Linux AMD64 image pinned by digest.
 
-```text
-input/
-├── CSP/sub-01/Full/CSP_T0.mat … CSP_T5.mat
-└── IHI/sub-01/Full/IHI_T0.mat … IHI_T5.mat
-```
-
-From the repository root, run:
+From the checkout, try the included synthetic recordings:
 
 ```bash
-nextflow run MINT.nf -profile docker
-nextflow run MINT.nf -profile docker --slim true
-nextflow run MINT.nf --help
+nextflow run MINT.nf -profile docker --input tests/fixtures/4000 \
+  --strict_timepoints false --slim true --outdir results/synthetic
 ```
 
-MEP is always enabled. Use `--CSP false` or `--IHI false` to omit either optional analysis.
+For your study, replace the input and output paths. Use the
+[input data guide](https://mint-toolbox.readthedocs.io/en/latest/input-data/)
+to organize files and `--scientific_params study.json` to supply a copy of
+[the default settings](assets/scientific_params.json) with overrides.
+Use `nextflow run MINT.nf --help` for the options.
 
-## Output
+Historical recordings were validated at **4,000 Hz**. Testing at
+**1,000 Hz** used independently generated synthetic signals.
+[Read the documentation](https://mint-toolbox.readthedocs.io/en/latest/).
 
-Results are written to `results/mep/`, `results/csp/`, and `results/ihi/` for the selected analyses. The interactive report is `results/multiqc/multiqc_report.html`. Slim mode publishes representative PNG/CSV pairs under `results/slim/` and retains the complete measurement tables.
+## Synthetic examples
 
-## Example outputs
+### MEP
 
-MINT generated these figures from synthetic EMG and stimulation signals for the example participant XX.
+![Synthetic MEP amplitudes and the measurement window](assets/example_mep.png)
 
-### Motor Evoked Potentials (MEP)
+### CSP
 
-![Synthetic MEP example with trial amplitudes and an EMG measurement window](assets/example_mep.png)
+![Synthetic EMG traces with CSP duration markers](assets/example_csp.png)
 
-Peak-to-peak amplitudes by trial (top) and the first EMG trace with its measurement window (bottom).
+### IHI
 
-### Cortical Silent Period (CSP)
+![Synthetic right and left EMG with TTL peaks and MEP measurement windows](assets/example_ihi.png)
 
-![Synthetic CSP example with EMG traces and duration markers](assets/example_csp.png)
-
-EMG traces for three conditions, with detected CSP boundaries and durations in milliseconds.
-
-### Interhemispheric Inhibition (IHI)
-
-![Synthetic IHI example with right and left EMG and pulse markers](assets/example_ihi.png)
-
-Right and left EMG traces with pulse markers and MEP measurement windows for unconditioned, IHI10 and IHI40 trials.
-
-## Documentation
-
-Detailed documentation is planned for Read the Docs.
-
-## Citation
-
-For now, cite MINT by its full name and record the version or commit used in your analysis.
+When citing an analysis, record the MINT version or commit and retain the
+scientific settings used for the run.

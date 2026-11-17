@@ -37,6 +37,8 @@ exclude_docs: |
 validation:
   links:
     anchors: warn
+    not_found: warn
+    absolute_links: warn
 
 nav:
   - Overview: index.md
@@ -44,5 +46,7 @@ nav:
   - Input data: input-data.md
   - Running MINT: running-mint.md
   - Analysis modules: analysis-modules.md
+  - Scientific parameters: scientific-parameters.md
   - Outputs: outputs.md
+  - Validation: validation.md
   - Troubleshooting: troubleshooting.md

@@ -1,5 +1,5 @@
 process CSP_ANALYSIS {
-    tag { meta.key.toString() }
+    tag "${meta.key}"
     publishDir "${params.outdir}/csp/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     input:
     tuple val(meta), path(features)
@@ -13,7 +13,7 @@ process CSP_ANALYSIS {
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process CSP_PLOT {
-    tag { id.toString() }
+    tag id
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/CSP" : "${params.outdir}/csp/plots" }, mode:'copy', overwrite:true
     input:
@@ -24,9 +24,7 @@ process CSP_PLOT {
     val slim
     tuple val(render_hash), path(render_library)
     output:
-    path '*.modern_csp.png', emit:png, optional:true
-    path '*.modern_csp.svg', emit:svg, optional:true
-    path '*.modern_csp.pdf', emit:pdf, optional:true
+    path '*.png', emit:png, optional:true
     path '*.csv', emit:csv, optional:true
     path '*.render.json', emit:audit
     script:

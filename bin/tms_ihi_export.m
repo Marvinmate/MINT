@@ -1,14 +1,15 @@
 function tms_ihi_export(files,settings)
-  tms_init(settings); records=tms_load_records(files); id=records{1}.id;
+  p=tms_init(settings); records=tms_load_records(files); id=records{1}.id;
   header={'ID','Visit','Timepoint','Trial','Condition','MEP_Right_mV','MEP_Left_mV'};
-  allrows=cell(0,7); visits={'Full','Half','Pbo'};
+  allrows=cell(0,7); visits=tms_conditions(records,p);
   classOrder={'','IHI_10ms','IHI_40ms','Unconditioned_MEP','Unknown'};
-  for v=1:3
+  for v=1:numel(visits)
     group=records(cellfun(@(d)strcmp(d.condition,visits{v}),records));
     if isempty(group), continue; end
     n=max(cellfun(@(d)d.n,group)); R=nan(n,6); L=R; C=repmat({''},n,6);
     for i=1:numel(group)
       d=group{i}; R(1:d.n,d.time+1)=d.amp(:,1); L(1:d.n,d.time+1)=d.amp(:,2); C(1:d.n,d.time+1)=d.classes;
+      if isfield(d,'included'), R(find(~d.included),d.time+1)=NaN; L(find(~d.included),d.time+1)=NaN; end
     end
     R(R==0)=NaN; L(L==0)=NaN; rows=cell(n*6,7); keys=zeros(n*6,3); index=0;
     for tp=0:5
@@ -18,7 +19,10 @@ function tms_ihi_export(files,settings)
       end
     end
     [~,order]=sortrows(keys,[1 2 3]); rows=rows(order,:); allrows=[allrows;rows];
-    tms_xlsx([id '_IHI_Results.xlsx'],visits{v},header,rows);
+    % Labels remain verbatim in Visit; nonhistorical workbooks use safe numbered tabs.
+    sheet=visits{v};
+    if ~all(ismember(visits,{'Full','Half','Pbo'})), sheet=sprintf('Condition_%d',v); end
+    tms_xlsx([id '_IHI_Results.xlsx'],sheet,header,rows);
   end
   tms_write_tsv([id '_IHI_Results.tsv'],header,allrows);
 end

@@ -1,5 +1,5 @@
 process IHI_ANALYSIS {
-    tag { meta.key.toString() }
+    tag "${meta.key}"
     publishDir "${params.outdir}/ihi/data", mode:'copy', overwrite:true, pattern:'*.tsv'
     input:
     tuple val(meta), path(features)
@@ -13,7 +13,7 @@ process IHI_ANALYSIS {
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process IHI_PLOT {
-    tag { meta.key.toString() }
+    tag "${meta.key}"
     label 'plot'
     publishDir { params.slim.toString().toLowerCase() == 'true' ? "${params.outdir}/slim/IHI" : "${params.outdir}/ihi/plots" }, mode:'copy', overwrite:true
     input:
@@ -25,16 +25,15 @@ process IHI_PLOT {
     tuple val(render_hash), path(render_library)
     output:
     path '*.png', emit:png, optional:true
-    path '*.svg', emit:svg, optional:true
-    path '*.pdf', emit:pdf, optional:true
     path '*.csv', emit:csv, optional:true
     path '*.graphics.json', emit:audit
     script:
-    def code="addpath('${library}'); addpath('${render_library}'); tms_ihi_render('${record}','${render_settings}',${slim ? 'true' : 'false'});"
+    def recordings = (record instanceof List ? record : [record]).collect { "'${it.name}'" }.join(',')
+    def code="addpath('${library}'); addpath('${render_library}'); tms_ihi_render({${recordings}},'${render_settings}',${slim ? 'true' : 'false'});"
     "${params.octave} --no-gui --quiet --eval \"${code}\""
 }
 process IHI_EXPORT {
-    tag { id.toString() }
+    tag id
     publishDir "${params.outdir}/ihi/data", mode:'copy', overwrite:true
     input:
     tuple val(id), path(records)

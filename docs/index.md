@@ -10,3 +10,5 @@ Nextflow runs the analyses and tracks their inputs. The Docker and Apptainer pro
 4. [Review the results](outputs.md) alongside the [measurement methods](analysis-modules.md).
 
 For build and deployment instructions for this documentation, see [Building these docs](installation.md#building-these-docs).
+
+Version 0.2.0 supports custom conditions, recording-specific sample rates, configurable MEP search windows, pre-stimulation EMG QC and a choice of CSP endpoints. Read the [scientific parameters](scientific-parameters.md) and [validation scope](validation.md) before using new settings on study recordings.

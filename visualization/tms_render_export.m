@@ -1,12 +1,9 @@
 function tms_render_export(f,base,r)
   if isfield(r,'export_csv') && r.export_csv, mint_plot_csv(f,base); end
-  formats={'svg','pdf','png'}; formats=formats(ismember(formats,r.formats));
+  % PNG only, fixed publication resolution; no vector export branches.
+  r.dpi=300;
   if ~exist('OCTAVE_VERSION','builtin')
-    for item=formats
-      fmt=item{1};
-      if strcmp(fmt,'png'), print(f,[base '.png'],'-dpng',['-r' num2str(r.dpi)]);
-      else, print(f,[base '.' fmt],['-d' fmt],'-painters'); end
-    end
+    print(f,[base '.png'],'-dpng','-r300');
     return;
   end
   % Batch gnuplot avoids Octave's synchronous FIFO queries, which can hang
@@ -33,18 +30,10 @@ function tms_render_export(f,base,r)
     panels{a}=struct('ax',ax,'lines',{lines},'labels',{labels});
   end
   inches=get(f,'PaperSize');
-  for fmt=formats
-    fmt=fmt{1}; scale=1;
-    fprintf(fid,'reset\nset encoding utf8\nunset key\n');
-    if strcmp(fmt,'png')
-      scale=r.dpi/72; pixels=round(inches*r.dpi);
-      fprintf(fid,'set terminal pngcairo noenhanced fontscale 0.75 size %d,%d font %s linewidth %.10g\n',pixels,qt(sprintf('%s,%.10g',r.font,r.font_size*scale)),scale);
-    elseif strcmp(fmt,'pdf')
-      fprintf(fid,'set terminal pdfcairo noenhanced fontscale 0.75 size %.10gin,%.10gin font %s\n',inches,qt(sprintf('%s,%g',r.font,r.font_size)));
-    else
-      fprintf(fid,'set terminal svg noenhanced linewidth 0.5 size %.10g,%.10g font %s\n',inches*72,qt(sprintf('%s,%g',r.font,r.font_size)));
-    end
-    fprintf(fid,'set output %s\nset multiplot\n',qt([base '.' fmt]));
+  scale=r.dpi/72; pixels=round(inches*r.dpi);
+  fprintf(fid,'reset\nset encoding utf8\nunset key\n');
+  fprintf(fid,'set terminal pngcairo noenhanced fontscale 0.75 size %d,%d font %s linewidth %.10g\n',pixels,qt(sprintf('%s,%.10g',r.font,r.font_size*scale)),scale);
+  fprintf(fid,'set output %s\nset multiplot\n',qt([base '.png']));
     for a=1:numel(panels)
       panel=panels{a}; ax=panel.ax; pos=get(ax,'Position'); fs=get(ax,'FontSize')*scale;
       fprintf(fid,'unset label\nunset arrow\nunset object\nunset grid\nset border 3 lc rgb "#444444" lw 0.7\n');
@@ -70,7 +59,8 @@ function tms_render_export(f,base,r)
         if strcmp(z.style,'--'), dash=2; elseif strcmp(z.style,':'), dash=3; end
         if ~strcmp(z.marker,'none')
           style='linespoints'; if strcmp(z.style,'none'), style='points'; end
-          marker=sprintf(' pt 6 ps %.10g',z.size/6*scale);
+          point=6; if strcmp(z.marker,'x'), point=2; elseif strcmp(z.marker,'+'), point=1; elseif any(strcmp(z.marker,{'s','square'})), point=4; end
+          marker=sprintf(' pt %d ps %.10g',point,z.size/6*scale);
         elseif strcmp(z.style,'none'), continue; end
         commands{end+1}=sprintf('%s using 1:2 with %s lc rgb %s lw %.10g dt %d%s notitle',z.name,style,qt(rgb(z.color)),z.width,dash,marker);
       end
@@ -82,14 +72,9 @@ function tms_render_export(f,base,r)
       end
     end
     fprintf(fid,'unset multiplot\nunset output\n');
-  end
   fclose(fid);
   [status,message]=system(['gnuplot ' shellquote(gp)]); assert(status==0,['gnuplot batch failed: ' message]);
-  if any(strcmp(formats,'svg'))
-  svg=fileread([base '.svg']); svg=strrep(svg,['font-family="' r.font ':Bold"'],['font-family="' r.font '" font-weight="bold"']);
-  fid=fopen([base '.svg'],'w'); assert(fid>=0); fprintf(fid,'%s',svg); fclose(fid);
-  end
-  if any(strcmp(formats,'png')), png_resolution([base '.png'],r.dpi); end
+  png_resolution([base '.png'],r.dpi);
   delete(gp);
 end
 function ticks(fid,axis,values,labels,font,size)

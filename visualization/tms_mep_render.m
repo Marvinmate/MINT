@@ -2,17 +2,22 @@ function tms_mep_render(features,settings,slim)
   if nargin<3, slim=false; end
   r=tms_render_init(settings); x=load(features); d=x.d;
   if slim, r.formats={'png'}; r.export_csv=true; end
+  label=sprintf('ID %s | %s | T%d',d.id,d.condition,d.time);
   names={'Right EMG','Left EMG'};
   if strcmp(d.protocol,'CSP'), names{1}='Single-channel EMG'; end
   colors=[.05 .32 .62; .78 .26 .12];
-  footer='New visualization | Stored amplitudes and events | EMG displayed raw, without filtering';
+  footer='New visualization | Stored amplitudes and events | EMG raw | Red crosses: excluded trials';
   if strcmp(d.protocol,'IHI'), footer=[footer ' | Left amplitudes use the historical filtered signal']; end
-  f=tms_render_figure(r.mep_inches,['MEP | ' d.key],footer,r);
+  f=tms_render_figure(r.mep_inches,['MEP | ' label],footer,r);
   ax=tms_render_axes(f,[.09 .61 .86 .27],r);
   for ch=1:2
     if any(isfinite(d.amp(:,ch)))
       h=plot(ax,1:d.n,d.amp(:,ch)*1000,'o-','Color',colors(ch,:),'MarkerSize',4,'MarkerFaceColor','w','LineWidth',.8,'DisplayName',names{ch});
       setappdata(h,'mint_trials',1:d.n);
+      if isfield(d,'included')
+        excluded=find(~d.included & isfinite(d.amp(:,ch)));
+        if ~isempty(excluded), hx=plot(ax,excluded,d.amp(excluded,ch)*1000,'x','Color',[.8 .15 .1],'MarkerSize',5,'DisplayName','Excluded trial'); setappdata(hx,'mint_trials',excluded); end
+      end
       drawn=get(h,'YData'); assert(isequaln(drawn(:),d.amp(:,ch)*1000),'Rendered amplitudes differ');
     end
   end
@@ -31,8 +36,8 @@ function tms_mep_render(features,settings,slim)
   end
   ylim(ax,tms_render_limits(raw*1000)); xlim(ax,[0 t(end)]); set(ax,'XTick',0:50:400);
   ev=tms_render_events(ax,d,1,r,channels);
-  xlabel(ax,'Time within trial (ms; 4000 Hz)'); ylabel(ax,'Raw EMG (mV)');
-  title(ax,'Trial 1 | bottom bands: saved MEP windows; circles: centre / end; vertical lines: stimuli','FontSize',10,'FontWeight','bold');
+  xlabel(ax,sprintf('Time within trial (ms; %g Hz)',d.rate)); ylabel(ax,'Raw EMG (mV)');
+  title(ax,'Trial 1 | Thin segments: measurement windows | Vertical lines: TTL peaks','FontSize',10,'FontWeight','bold');
   base=[d.key '.new_mep']; tms_render_export(f,base,r); close(f);
   tms_write_json([base '.graphics.json'],struct('key',d.key,'protocol',d.protocol,'trials',d.n,...
     'amplitudes_mV',d.amp*1000,'onsets',d.onset,'offsets',d.offset,'representative_events',ev,...

@@ -1,5 +1,7 @@
-function stim_idx = detect_TMS_pulse(pulse_signal, Rate)
+function [stim_idx,event] = detect_TMS_pulse(pulse_signal, Rate)
 
+    pulse_signal=pulse_signal(:);
+    event=struct('start',NaN,'peak',NaN,'end',NaN,'duration_ms',NaN);
     % PARAMETERS
     Amp_Threshold = 2.5;      % A TMS pulse must be at least 2.5V to be detected (they are usually 5V)
     Min_Duration_ms = 3;      % Reject TMS pulses lasting less than 3ms (artefacts on Ch3)
@@ -31,6 +33,7 @@ function stim_idx = detect_TMS_pulse(pulse_signal, Rate)
                 [~, peak_rel] = max(abs(segment));
                 stim_idx = seg_start + peak_rel - 1;
     
+                event=struct('start',seg_start,'peak',stim_idx,'end',seg_end,'duration_ms',seg_len*1000/Rate);
                 return;
             end
         end

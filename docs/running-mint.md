@@ -22,7 +22,7 @@ MEP always runs on every valid recording under `--input`, including when a downs
 
 ## Standard and slim outputs
 
-Standard mode writes the full figure set. Slim mode writes a representative subset of PNGs and their plotting CSVs. Both modes produce the same scientific tables for the selected analyses. MultiQC is enabled by default.
+Standard mode writes the full set of PNG figures at 300 dpi. Slim mode writes a representative subset of PNGs and their plotting CSVs. Both modes produce the same scientific tables for the selected analyses. MultiQC is enabled by default.
 
 ```bash
 # Standard mode
@@ -33,6 +33,18 @@ nextflow run MINT.nf -profile docker --input input --outdir results/slim-run --s
 ```
 
 To resume an interrupted run, rerun the same command with `-resume` from the same launch directory and keep its `.nextflow` cache and task work directory.
+
+## Run with study settings
+
+Copy the default settings, adjust the relevant fields and pass the new
+file to MINT. See [Scientific parameters](scientific-parameters.md) for
+defaults and examples.
+
+```bash
+cp assets/scientific_params.json study.json
+nextflow run MINT.nf -profile docker --input input --outdir results/study \
+  --scientific_params study.json --slim true
+```
 
 ## Run on Slurm
 
@@ -57,6 +69,7 @@ Pass Boolean values as `true` or `false`. Parameter names are case-sensitive.
 
 | Parameter | Default | Purpose |
 | --- | --- | --- |
+| `--scientific_params` | CLI default is `assets/scientific_params.json` | Path to a study settings JSON file. |
 | `--input` | `input/` beside `MINT.nf` | Root directory of the LabChart exports. |
 | `--outdir` | `results/` beside `MINT.nf` | Destination for published results. |
 | `--MEP` | `true` | Required analysis. Setting it to `false` causes an error. |

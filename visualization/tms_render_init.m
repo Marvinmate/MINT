@@ -1,10 +1,7 @@
 function r=tms_render_init(settings)
   r=jsondecode(fileread(settings));
-  if ~isfield(r,'formats'), r.formats={'png','svg','pdf'}; end
-  assert(iscell(r.formats) && ~isempty(r.formats),'Rendering formats must be a nonempty list');
-  assert(all(ismember(r.formats,{'png','svg','pdf'})) && numel(unique(r.formats))==numel(r.formats),'Unsupported or duplicate rendering format');
-  r.formats=reshape(r.formats,1,[]);
-  assert(r.dpi>=72 && r.dpi<=1200 && r.dpi==round(r.dpi),'Invalid rendering DPI');
+  % Output policy is fixed, including when an older settings file is supplied.
+  r.formats={'png'}; r.dpi=300;
   assert(ismember(r.ihi_trials_per_page,6:12),'Use 6 to 12 trials per page');
   if exist('OCTAVE_VERSION','builtin')
     cache=fullfile(pwd,'.font-cache'); if ~exist(cache,'dir'), mkdir(cache); end

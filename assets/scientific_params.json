@@ -12,25 +12,16 @@
   "silence_samples": 60,
   "breakthrough_max_samples": 160,
   "remove_60hz": true,
-  "formats": [
-    "png",
-    "svg",
-    "pdf"
-  ],
-  "plot_dpi": 96,
-  "csp_figure_versions": {
-    "p26": "v1"
-  },
-  "figure_context_conditions": {
-    "p26": "Full"
-  },
-  "default_figure_version": "v2",
-  "default_figure_context_condition": "Pbo",
-  "csp_figure_orders": {
-    "p26": [
-      "Pbo",
-      "Half",
-      "Full"
-    ]
-  }
+  "mep_search_start_ms": 12,
+  "mep_search_end_ms": 60,
+  "prestim_qc_enabled": false,
+  "prestim_qc_exclude": false,
+  "prestim_start_ms": -50,
+  "prestim_end_ms": -5,
+  "prestim_threshold_uv": 50,
+  "csp_stimulus_time_ms": null,
+  "csp_end_method": "breakthrough-aware",
+  "condition_order": [],
+  "sgolay_span_ms": 2.5,
+  "sgolay_order": 3
 }

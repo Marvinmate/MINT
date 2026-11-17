@@ -1,10 +1,12 @@
-function [Duration_in_Sec,Idx_Peak,CSP_Offset] = Calculate_CSP(data,Rate,start_end,window_MEP,Offset_Assess_CSP,Offset_Assess_Baseline,Bsln_Dur,Length_Sliding,Fraction_Of_Threshold)
+function [Duration_in_Sec,Idx_Peak,CSP_Offset] = Calculate_CSP(data,Rate,start_end,window_MEP,Offset_Assess_CSP,Offset_Assess_Baseline,Bsln_Dur,Length_Sliding,Fraction_Of_Threshold,SG_Frame)
+
+if nargin<10, SG_Frame=11; end
 
 % Where to look to calculate baseline variance
 Window_Baseline = window_MEP(1)-Offset_Assess_Baseline-Bsln_Dur:window_MEP(1)-Offset_Assess_Baseline;
 
 diff_data = diff(data); % We'll work with the data differential to avoid possible slow drifts
-diff_data = sgolayfilt(diff_data,3,11); % Smooth out the imperfections
+diff_data = sgolayfilt(diff_data,3,SG_Frame); % Smooth out the imperfections
 
 % Calculate the threshold based on diff_data (not the raw data)
 Threshold = std(diff_data(Window_Baseline))*Fraction_Of_Threshold; % That's our threshold to determine CSP offset

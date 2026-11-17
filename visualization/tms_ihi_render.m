@@ -1,14 +1,22 @@
 function tms_ihi_render(record,settings,slim)
   if nargin<3, slim=false; end
+  classes={'Unconditioned_MEP','IHI_10ms','IHI_40ms'};
+  if iscell(record)
+    if slim, record=select_recordings(record,classes); end
+    for k=1:numel(record)
+      tms_ihi_render(record{k},settings,slim);
+    end
+    return;
+  end
   r=tms_render_init(settings); x=load(record); d=x.d;
   if slim, r.formats={'png'}; r.export_csv=true; end
-  classes={'Unconditioned_MEP','IHI_10ms','IHI_40ms'};
+  label=sprintf('ID %s | %s | T%d',d.id,d.condition,d.time);
   names={'Unconditioned','IHI10','IHI40'};
   colors=[.20 .39 .65; .05 .52 .40; .56 .29 .65];
   channelColors=[.05 .32 .62; .78 .26 .12]; channelNames={'Right','Left'};
   t=(0:size(d.trials,1)-1)*1000/d.rate; counts=zeros(1,3);
   footer='New visualization | All individual raw traces | Classifications and event indices copied from validated outputs';
-  f=tms_render_figure(r.ihi_overview_inches,['IHI | ' d.key ' | All trials'],footer,r);
+  f=tms_render_figure(r.ihi_overview_inches,['IHI | ' label ' | All trials'],footer,r);
   for ch=1:2
     lim=tms_render_limits(d.trials(:,ch,:)*1000);
     for cl=1:3
@@ -32,8 +40,8 @@ function tms_ihi_render(record,settings,slim)
   end
   tms_render_export(f,[d.key '.ihi_overview'],r); close(f);
   % Per-channel amplitudes remain separate; each point is one stored value.
-  f=tms_render_figure(r.ihi_summary_inches,['IHI | ' d.key ' | Stored MEP amplitudes'],...
-    'New visualization | Dots: individual stored values, deterministic horizontal spread | Left: historical 60 Hz correction; unconditioned not measured',r);
+  f=tms_render_figure(r.ihi_summary_inches,['IHI | ' label ' | Stored MEP amplitudes'],...
+    'New visualization | Dots: stored values; red crosses: excluded | Left: historical 60 Hz correction; unconditioned not measured',r);
   finiteCounts=zeros(2,3); plotted=cell(2,3);
   for ch=1:2
     ax=tms_render_axes(f,[.09+(ch-1)*.49 .22 .38 .59],r); labels=cell(1,3);
@@ -42,6 +50,10 @@ function tms_ihi_render(record,settings,slim)
       y=d.amp(ix,ch)*1000; n=numel(y); finiteCounts(ch,cl)=n;
       spread=zeros(n,1); if n>1, spread=linspace(-.17,.17,n)'; end
       drawn=[]; if n>0, h=plot(ax,cl+spread,y,'o','Color',colors(cl,:),'MarkerSize',4,'MarkerFaceColor','w','DisplayName',names{cl}); setappdata(h,'mint_trials',ix); drawn=get(h,'YData'); end
+      if isfield(d,'included')
+        rejected=find(~d.included(ix));
+        if ~isempty(rejected), hx=plot(ax,cl+spread(rejected),y(rejected),'x','Color',[.8 .15 .1],'MarkerSize',5,'DisplayName','Excluded trial'); setappdata(hx,'mint_trials',ix(rejected)); end
+      end
       assert(isequal(drawn(:),y(:)),'Rendered amplitudes differ');
       plotted{ch,cl}=struct('trials',ix,'values_mV',drawn(:));
       labels{cl}=sprintf('%s (n=%d)',names{cl},n);
@@ -55,12 +67,24 @@ function tms_ihi_render(record,settings,slim)
   end
   tms_render_export(f,[d.key '.ihi_amplitudes'],r); close(f);
   pageSize=r.ihi_trials_per_page; pages=ceil(d.n/pageSize); rows=ceil(pageSize/2);
-  renderedPages=pages; if slim, renderedPages=1; end
+  renderedPages=pages;
+  if slim
+    renderedPages=1;
+    selected=representative_trials(d.classes,classes,pageSize);
+  end
+  detailTrials=cell(1,renderedPages);
   for pg=1:renderedPages
-    indices=(pg-1)*pageSize+1:min(pg*pageSize,d.n);
+    if slim
+      indices=selected;
+      heading=sprintf('IHI | %s | %d representative trials',label,numel(indices));
+    else
+      indices=(pg-1)*pageSize+1:min(pg*pageSize,d.n);
+      heading=sprintf('IHI | %s | Trials %d-%d | Page %d/%d',label,indices(1),indices(end),pg,pages);
+    end
+    detailTrials{pg}=indices;
     inches=r.ihi_detail_inches; inches(2)=max(inches(2),rows*3.3);
-    f=tms_render_figure(inches,sprintf('IHI | %s | Trials %d-%d | Page %d/%d',d.key,indices(1),indices(end),pg,pages),...
-      'New visualization | Blue: right; orange: left (raw) | Dashed: test pulse; dotted: conditioning pulse | Bottom bands: MEP windows; circles: centre / end',r);
+    f=tms_render_figure(inches,heading,...
+      'New visualization | Blue: right; orange: left (raw) | Dashed: test pulse; dotted: conditioning pulse | Thin segments: MEP measurement windows',r);
     h=.80/rows; panelHeight=.44/rows;
     for k=1:numel(indices)
       tr=indices(k); row=floor((k-1)/2); col=mod(k-1,2);
@@ -73,7 +97,8 @@ function tms_ihi_render(record,settings,slim)
       ylim(ax,tms_render_limits(d.trials(:,1:2,tr)*1000)); xlim(ax,[0 t(end)]); set(ax,'XTick',0:100:400,'FontSize',9);
       tms_render_events(ax,d,tr,r,1:2);
       xlabel(ax,'Time (ms)','FontSize',9); ylabel(ax,'Raw EMG (mV)','FontSize',9);
-      title(ax,sprintf('Trial %d | %s',tr,strrep(d.classes{tr},'_',' ')),'FontSize',11,'FontWeight','bold');
+      suffix=''; if isfield(d,'included') && ~d.included(tr), suffix=' | excluded'; end
+      title(ax,sprintf('Trial %d | %s%s',tr,strrep(d.classes{tr},'_',' '),suffix),'FontSize',11,'FontWeight','bold');
     end
     tms_render_export(f,sprintf('%s.ihi_trials_p%02d',d.key,pg),r); close(f);
   end
@@ -81,5 +106,43 @@ function tms_ihi_render(record,settings,slim)
     'trials',d.n,'layout','new overview + paginated trials + amplitude summary','left_signal','raw',...
     'onsets',d.onset,'offsets',d.offset,'stim',d.stim,'classes',{d.classes},'amplitudes_mV',d.amp*1000,...
     'class_counts',counts,'finite_amplitude_counts',finiteCounts,'plotted_amplitudes',{plotted},'trials_per_page',pageSize,'pages',renderedPages,...
-    'sample_time_ms',[t(1) t(end)],'rate',d.rate,'dpi',r.dpi,'reference','new visualization; no archived IHI figure'));
+    'detail_trials',{detailTrials},'sample_time_ms',[t(1) t(end)],'rate',d.rate,'dpi',r.dpi,'reference','new visualization; no archived IHI figure'));
+end
+
+function selected=select_recordings(records,classes)
+  % Choose the first recording with all three classes. If classes occur in
+  % separate recordings, prefer the recording covering the most remaining classes.
+  coverage=false(numel(records),numel(classes));
+  for k=1:numel(records)
+    candidate=load(records{k},'d');
+    coverage(k,:)=ismember(classes,candidate.d.classes);
+    if all(coverage(k,:))
+      selected=records(k);
+      return;
+    end
+  end
+  selected={};
+  remaining=any(coverage,1);
+  while any(remaining)
+    [~,best]=max(sum(coverage(:,remaining),2));
+    selected{end+1}=records{best};
+    remaining=remaining & ~coverage(best,:);
+  end
+  if isempty(selected), selected=records(1); end
+end
+
+function selected=representative_trials(observed,classes,pageSize)
+  % Round-robin through the stored classes so common cases cannot crowd out
+  % a rare class. Preserve original trial numbers on the resulting page.
+  groups=cellfun(@(name)find(strcmp(observed,name)),classes,'UniformOutput',false);
+  selected=[];
+  for k=1:pageSize
+    for cl=1:numel(groups)
+      if numel(groups{cl})>=k && numel(selected)<pageSize
+        selected(end+1)=groups{cl}(k);
+      end
+    end
+  end
+  if isempty(selected), selected=1:min(numel(observed),pageSize); end
+  selected=sort(selected);
 end
