@@ -1,6 +1,6 @@
 # Analysis modules
 
-MINT implements the historical acquisition and measurement methods described below. Sample counts below refer to the historical 4,000 Hz calibration. MINT scales settings to the recording rate. See [Scientific parameters](scientific-parameters.md) for settings and units. The source functions are in [the Octave library](https://github.com/Marvinmate/MINT/tree/d1410576369e0586113f47903d745fcb521508d7/bin), and the configurable values are in [the scientific parameters](https://github.com/Marvinmate/MINT/blob/d1410576369e0586113f47903d745fcb521508d7/assets/scientific_params.json).
+MINT implements the historical acquisition and measurement methods described below. Sample counts below refer to the historical 4,000 Hz calibration. MINT scales settings to the recording rate. See [Scientific parameters](scientific-parameters.md) for settings and units. The source functions are in [the Octave library](https://github.com/Marvinmate/MINT/tree/v0.2.0/bin), and the configurable values are in [the scientific parameters](https://github.com/Marvinmate/MINT/blob/v0.2.0/assets/scientific_params.json).
 
 ## Motor evoked potentials (MEP)
 

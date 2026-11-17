@@ -79,15 +79,15 @@ export PATH="$HOME/.local/bin:$PATH"
 nextflow -version
 ```
 
-From the directory where you want to keep the checkout:
+From the directory where you want to keep the checkout, clone the published `v0.2.0` tag:
 
 ```bash
-git clone https://github.com/Marvinmate/MINT.git
+git clone --branch v0.2.0 https://github.com/Marvinmate/MINT.git
 cd MINT
 nextflow run MINT.nf --help
 ```
 
-Skip the clone if you already have a checkout and open that directory instead. The first containerized run requires registry access unless the image is already available locally.
+If you already have a checkout, run `git fetch --tags` and `git switch --detach v0.2.0` there to use the same release. The first containerized run requires registry access unless the image is already available locally.
 
 ## Building these docs
 

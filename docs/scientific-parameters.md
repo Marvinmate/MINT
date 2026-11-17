@@ -1,6 +1,6 @@
 # Scientific parameters
 
-Copy [the default JSON](https://github.com/Marvinmate/MINT/blob/d1410576369e0586113f47903d745fcb521508d7/assets/scientific_params.json)
+Copy [the default JSON](https://github.com/Marvinmate/MINT/blob/v0.2.0/assets/scientific_params.json)
 and pass your copy with `--scientific_params study.json`. Provenance
 records the effective parameters, sample rate, trial length and
 smoothing span for each recording.

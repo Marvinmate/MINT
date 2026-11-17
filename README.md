@@ -1,6 +1,6 @@
-# MINT
+# MINT v0.2
 
-[![Read the Docs: main](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=latest)](https://mint-toolbox.readthedocs.io/)
+[![MINT v0.2 documentation](https://app.readthedocs.org/projects/mint-toolbox/badge/?version=v0.2.0)](https://mint-toolbox.readthedocs.io/en/v0.2.0/)
 
 The **Motor Interhemispheric Neurophysiology Toolbox** is a Nextflow and
 GNU Octave pipeline for LabChart EMG recordings. MINT v0.2.0 measures motor
@@ -16,26 +16,29 @@ scientific tables, Excel workbooks and MultiQC report.
 ## Quick start
 
 Install Java 17 or newer, Nextflow 26.04.6 or newer, and Docker. On a
-Slurm cluster, use the [V2 Apptainer instructions](docs/running-mint.md#run-on-slurm).
+Slurm cluster, use the [Apptainer instructions](docs/running-mint.md#run-on-slurm).
 Both profiles use a Linux AMD64 image pinned by digest.
 
-From the checkout, try the included synthetic recordings:
+Check out the published `v0.2.0` tag to try the included synthetic recordings:
 
 ```bash
+git clone --branch v0.2.0 https://github.com/Marvinmate/MINT.git
+cd MINT
 nextflow run MINT.nf -profile docker --input tests/fixtures/4000 \
   --strict_timepoints false --slim true --outdir results/synthetic
 ```
 
 For your study, replace the input and output paths. Use the
-[V2 input data guide](docs/input-data.md)
+[input data guide](docs/input-data.md)
 to organize files and `--scientific_params study.json` to supply a copy of
 [the default settings](assets/scientific_params.json) with overrides.
 Use `nextflow run MINT.nf --help` for the options.
 
 Historical recordings were validated at **4,000 Hz**. Testing at
 **1,000 Hz** used independently generated synthetic signals.
-[Read the V2 documentation on this branch](docs/index.md). The Read the Docs
-badge follows the public `latest` site, which tracks `main`.
+[Current documentation](https://mint-toolbox.readthedocs.io/) ·
+[MINT v0.1 source](https://github.com/Marvinmate/MINT/tree/v0.1.0) ·
+[MINT v0.1 documentation](https://mint-toolbox.readthedocs.io/en/v0.1.0/).
 
 ## Synthetic examples
 
