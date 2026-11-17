@@ -36,9 +36,9 @@ Use `nextflow run MINT.nf --help` for the options.
 
 Historical recordings were validated at **4,000 Hz**. Testing at
 **1,000 Hz** used independently generated synthetic signals.
-[Current documentation](https://mint-toolbox.readthedocs.io/) ·
-[MINT v0.1 source](https://github.com/Marvinmate/MINT/tree/v0.1.0) ·
-[MINT v0.1 documentation](https://mint-toolbox.readthedocs.io/en/v0.1.0/).
+[Current documentation](https://mint-toolbox.readthedocs.io/en/v0.2.0/)
+[MINT v0.1 source](https://github.com/Marvinmate/MINT/tree/v0.1.0)
+[MINT v0.1 documentation](https://mint-toolbox.readthedocs.io/en/v0.1.0/)
 
 ## Synthetic examples
 
